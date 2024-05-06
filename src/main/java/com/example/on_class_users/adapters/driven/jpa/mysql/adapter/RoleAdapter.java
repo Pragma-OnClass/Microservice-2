@@ -1,6 +1,6 @@
 package com.example.on_class_users.adapters.driven.jpa.mysql.adapter;
 
-import com.example.on_class_users.adapters.driven.jpa.mysql.entity.RoleEntity;
+import com.example.on_class_users.adapters.driven.jpa.mysql.adapter.util.RoleConstructor;
 import com.example.on_class_users.adapters.driven.jpa.mysql.exception.RoleAlreadyExistsException;
 import com.example.on_class_users.adapters.driven.jpa.mysql.mapper.IRoleEntityMapper;
 import com.example.on_class_users.adapters.driven.jpa.mysql.repository.IRoleRepository;
@@ -14,18 +14,24 @@ import java.util.Optional;
 public class RoleAdapter implements IRolePersistencePort {
     private final IRoleRepository roleRepository;
     private final IRoleEntityMapper roleEntityMapper;
+    private final RoleConstructor roleConstructor= new RoleConstructor();
+
+    @Override
+    public void createDefaultRole(String roleName) {
+        if(!isExists(roleName)){
+            roleRepository.save(roleConstructor.defaultRoleBuilder(roleName));
+        }
+    }
 
     @Override
     public void saveRol(Role role) {
-        Optional<RoleEntity> existingRole = roleRepository.findByNameIgnoreCase(role.getName().trim());
-        if (existingRole.isPresent()) {
+        if (isExists(role.getName().trim())) {
             throw new RoleAlreadyExistsException();
         }
+        roleRepository.save(roleEntityMapper.toEntity(roleConstructor.roleBuilder(role)));
+    }
 
-        roleRepository.save(roleEntityMapper.toEntity(new Role(
-           role.getId(),
-           role.getName().trim().toUpperCase(),
-           role.getDescription()
-        )));
+    private boolean isExists(String roleName) {
+        return roleRepository.findByNameIgnoreCase(roleName).isPresent();
     }
 }
