@@ -1,10 +1,13 @@
 package com.example.on_class_users.configuration.exceptionhandler;
 
+
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.example.on_class_users.adapters.driven.jpa.mysql.exception.*;
 import com.example.on_class_users.configuration.Constants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -25,6 +28,15 @@ public class ControllerAdvisor {
         return ResponseEntity.badRequest().body(new ExceptionResponse(
                 errorMessage.toString(),
                 HttpStatus.BAD_REQUEST.toString(),
+                LocalDateTime.now()
+        ));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ExceptionResponse> handleAccessDeniedException(AccessDeniedException accessDeniedException) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ExceptionResponse(
+                Constants.ROLE_PERMISSIONS_EXCEPTION_MESSAGE,
+                HttpStatus.FORBIDDEN.toString(),
                 LocalDateTime.now()
         ));
     }
@@ -65,6 +77,24 @@ public class ControllerAdvisor {
         ));
     }
 
+    @ExceptionHandler(WrongPasswordException.class)
+    public ResponseEntity<ExceptionResponse> handleWrongPasswordException() {
+        return ResponseEntity.badRequest().body(new ExceptionResponse(
+                Constants.WRONG_PASSWORD_EXCEPTION_MESSAGE,
+                HttpStatus.BAD_REQUEST.toString(),
+                LocalDateTime.now()
+        ));
+    }
+
+    @ExceptionHandler(UserDisabledException.class)
+    public ResponseEntity<ExceptionResponse> handleUserDisabledException() {
+        return ResponseEntity.badRequest().body(new ExceptionResponse(
+                Constants.USER_DISABLED_EXCEPTION_MESSAGE,
+                HttpStatus.BAD_REQUEST.toString(),
+                LocalDateTime.now()
+        ));
+    }
+
     @ExceptionHandler(WrongRoleException.class)
     public ResponseEntity<ExceptionResponse> handleWrongRoleException() {
         return ResponseEntity.badRequest().body(new ExceptionResponse(
@@ -78,6 +108,15 @@ public class ControllerAdvisor {
     public ResponseEntity<ExceptionResponse> handleRoleNotFoundException(RoleNotFoundException exception) {
         return ResponseEntity.badRequest().body(new ExceptionResponse(
                 Constants.ROLE_NOT_FOUND_EXCEPTION_MESSAGE,
+                HttpStatus.BAD_REQUEST.toString(),
+                LocalDateTime.now()
+        ));
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ExceptionResponse> handleJwtInvalidException(){
+        return ResponseEntity.badRequest().body(new ExceptionResponse(
+                Constants.JWT_VERIFICATION_EXCEPTION_MESSAGE,
                 HttpStatus.BAD_REQUEST.toString(),
                 LocalDateTime.now()
         ));

@@ -7,6 +7,7 @@ import com.example.on_class_users.adapters.driven.jpa.mysql.mapper.IRoleEntityMa
 import com.example.on_class_users.adapters.driven.jpa.mysql.mapper.IUserEntityMapper;
 import com.example.on_class_users.adapters.driven.jpa.mysql.repository.IRoleRepository;
 import com.example.on_class_users.adapters.driven.jpa.mysql.repository.IUserRepository;
+import com.example.on_class_users.adapters.security.jwt.JwtUtils;
 import com.example.on_class_users.domain.api.ILoginUserServicePort;
 import com.example.on_class_users.domain.api.IRoleServicePort;
 import com.example.on_class_users.domain.api.IUserServicePort;
@@ -19,7 +20,7 @@ import com.example.on_class_users.domain.spi.IUserPersistencePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @RequiredArgsConstructor
@@ -30,30 +31,34 @@ public class BeanConfiguration {
     private final IUserRepository userRepository;
     private final IUserEntityMapper userEntityMapper;
 
-    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
-    public IRolePersistencePort rolePersistencePort(){
+    public IRolePersistencePort rolePersistencePort() {
         return new RoleAdapter(roleRepository, roleEntityMapper);
     }
+
     @Bean
-    public IRoleServicePort roleServicePort(){
+    public IRoleServicePort roleServicePort() {
         return new RoleUseCase(rolePersistencePort());
     }
 
     @Bean
-    public IUserPersistencePort userPersistencePort(){
-        return new UserAdapter(userRepository, userEntityMapper, roleRepository);
+    public IUserPersistencePort userPersistencePort() {
+        return new UserAdapter(userRepository, userEntityMapper, roleRepository, jwtUtils);
     }
+
     @Bean
-    public IUserServicePort userServicePort(){
+    public IUserServicePort userServicePort() {
         return new UserUseCase(userPersistencePort());
     }
 
     @Bean
     public ILoginUserPersistencePort loginUserPersistencePort() {
-        return new LoginUserAdapter(userRepository, userEntityMapper, authenticationManager);
+        return new LoginUserAdapter(jwtUtils, passwordEncoder, userRepository);
     }
+
     @Bean
     public ILoginUserServicePort loginUserServicePort() {
         return new LoginUserUseCase(loginUserPersistencePort());
