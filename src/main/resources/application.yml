@@ -10,3 +10,10 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+security:
+  jwt:
+    key:
+      private: ${jwtKey}
+    user:
+      generator: ${userGenerator}

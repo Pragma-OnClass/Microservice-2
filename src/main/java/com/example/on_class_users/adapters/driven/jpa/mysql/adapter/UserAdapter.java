@@ -10,9 +10,12 @@ import com.example.on_class_users.adapters.driven.jpa.mysql.exception.WrongRoleE
 import com.example.on_class_users.adapters.driven.jpa.mysql.mapper.IUserEntityMapper;
 import com.example.on_class_users.adapters.driven.jpa.mysql.repository.IRoleRepository;
 import com.example.on_class_users.adapters.driven.jpa.mysql.repository.IUserRepository;
+import com.example.on_class_users.adapters.security.jwt.JwtUtils;
 import com.example.on_class_users.domain.model.User;
 import com.example.on_class_users.domain.spi.IUserPersistencePort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 
 import java.sql.SQLOutput;
@@ -25,6 +28,9 @@ public class UserAdapter implements IUserPersistencePort {
     private final IUserRepository userRepository;
     private final IUserEntityMapper userEntityMapper;
     private final IRoleRepository roleRepository;
+
+    private final JwtUtils jwtUtils;
+
     private final UserConstructor userConstructors = new UserConstructor();
 
     @Override
@@ -81,7 +87,6 @@ public class UserAdapter implements IUserPersistencePort {
         if (existingUser.isPresent()) {
             throw new UserAlreadyExistsException();
         }
-
 
         Optional<UserEntity> existingEmail = userRepository.findByEmailIgnoreCase(user.getEmail().trim());
         if (existingEmail.isPresent()) {
